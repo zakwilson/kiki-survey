@@ -231,6 +231,10 @@
             (count undiagnosed-adhd) (percent undiagnosed-adhd))
     (printf "Screened positive for ASD with no diagnosis (self or doctor): %d (%.0f%%)\n"
             (count undiagnosed-asd) (percent undiagnosed-asd))
+    (printf "Screened negative for ADHD with any diagnosis of ADHD (self or doctor): %d (%.0f%%)\n"
+            (count any-dx-adhd-screen-negative) (percent any-dx-adhd-screen-negative))
+    (printf "Screened negative for ASD with any diagnosis of ASD (self or doctor): %d (%.0f%%)\n"
+            (count any-dx-asd-screen-negative) (percent any-dx-asd-screen-negative))
     (printf "Screened, self, or doctor diagnosed with ADHD: %d (%.0f%%)\n"
             (count all-adhd) (percent all-adhd))
     (printf "Screened, self, or doctor diagnosed with ASD: %d (%.0f%%)\n"
