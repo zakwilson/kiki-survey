@@ -1,14 +1,14 @@
 # kiki-survey
 
-A Clojure library designed to ... well, that part is up to you.
+This generates reports from a Kiki's connective tissue disorder and neurodiversity survey.
 
 ## Usage
 
-FIXME
+(report (read-file "/path/to/survey.csv"))
 
 ## License
 
-Copyright © 2019 FIXME
+Copyright © 2019 Zak Wilson
 
 This program and the accompanying materials are made available under the
 terms of the Eclipse Public License 2.0 which is available at
