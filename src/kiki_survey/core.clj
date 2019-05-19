@@ -80,6 +80,9 @@
 (def self-adhd? (partial adhd? :self-diagnosed))
 (def doctor-ctd? (partial ctd? :doctor-diagnosed))
 (def self-ctd? (partial ctd? :self-diagnosed))
+(def self-chronic? (partial chronic-pain? :self-diagnosed))
+(def doctor-chronic? (partial chronic-pain? :doctor-diagnosed))
+(def doctor-neurodivergent? (partial neurodivergent? :doctor-diagnosed))
 
 ; these numbers are in quotes because to the computer, a string containing the
 ; character "2" is different from the number 2, and the form stored the former
@@ -155,6 +158,12 @@
         doctor-adhd (filter doctor-adhd? entries)
         doctor-asd (filter doctor-asd? entries)
         doctor-ctd (filter doctor-ctd? entries)
+        doctor-chronic (filter (every-pred doctor-chronic?
+                                    (complement doctor-ctd?))
+                        entries)
+        painless (filter (every-pred (complement doctor-chronic?)
+                                     (complement doctor-ctd?))
+                         entries)
         self-adhd (filter self-adhd? entries)
         self-asd (filter self-asd? entries)
         self-ctd (filter self-ctd? entries)
@@ -163,6 +172,10 @@
         any-dx-adhd (filter #(or (doctor-adhd? %) (self-adhd? %)) entries)
         any-dx-asd (filter #(or (doctor-asd? %) (self-asd? %)) entries)
         any-dx-ctd (filter #(or (doctor-ctd? %) (self-ctd? %)) entries)
+        dr-adhd-screen-negative (filter (complement screened-adhd?)
+                                               doctor-adhd)
+        dr-asd-screen-negative (filter (complement screened-asd?)
+                                           doctor-asd)        
         any-dx-adhd-screen-negative (filter (complement screened-adhd?)
                                             any-dx-adhd)
         any-dx-asd-screen-negative (filter (complement screened-asd?)
@@ -204,8 +217,82 @@
                                           (self-adhd? %)
                                           (screened-adhd? %))
                                          not-dx-ctd)
+
+        doctor-ctd-and-asd-only (filter (every-pred doctor-asd?
+                                                    (complement doctor-adhd?))
+                                        doctor-ctd)
+        doctor-ctd-and-adhd-only (filter (every-pred doctor-adhd?
+                                                     (complement doctor-asd?))
+                                         doctor-ctd)
+        doctor-ctd-and-both (filter (every-pred doctor-asd?
+                                         doctor-adhd?)
+                             doctor-ctd)
+        doctor-ctd-and-neurotypical (filter (every-pred (complement doctor-adhd?)
+                                                        (complement doctor-asd?))
+                                            doctor-ctd)
         
-        ]
+        screened-ctd-and-asd-only (filter (every-pred screened-asd?
+                                                      (complement screened-adhd?))
+                                          doctor-ctd)
+        screened-ctd-and-adhd-only (filter (every-pred screened-adhd?
+                                                       (complement screened-asd?))
+                                           doctor-ctd)
+        screened-ctd-and-both (filter (every-pred screened-asd?
+                                                  screened-adhd?)
+                                      doctor-ctd)
+        screened-ctd-and-neurotypical (filter (every-pred (complement screened-adhd?)
+                                                          (complement screened-asd?))
+                                              doctor-ctd)
+        doctor-chronic-and-asd-only (filter (every-pred doctor-asd?
+                                                        (complement doctor-adhd?))
+                                            doctor-chronic)
+        doctor-chronic-and-adhd-only (filter (every-pred doctor-adhd?
+                                                         (complement doctor-asd?))
+                                             doctor-chronic)
+        doctor-chronic-and-both (filter (every-pred doctor-asd?
+                                                    doctor-adhd?)
+                                        doctor-chronic)
+        doctor-chronic-and-neurotypical (filter (every-pred (complement doctor-adhd?)
+                                                            (complement doctor-asd?))
+                                                doctor-chronic)
+        
+        screened-chronic-and-asd-only (filter (every-pred screened-asd?
+                                                          (complement screened-adhd?))
+                                              doctor-chronic)
+        screened-chronic-and-adhd-only (filter (every-pred screened-adhd?
+                                                           (complement screened-asd?))
+                                               doctor-chronic)
+        screened-chronic-and-both (filter (every-pred screened-asd?
+                                                      screened-adhd?)
+                                          doctor-chronic)
+        screened-chronic-and-neurotypical (filter (every-pred (complement screened-adhd?)
+                                                              (complement screened-asd?))
+                                                  doctor-chronic)
+        doctor-painless-and-asd-only (filter (every-pred doctor-asd?
+                                                         (complement doctor-adhd?))
+                                             painless)
+        doctor-painless-and-adhd-only (filter (every-pred doctor-adhd?
+                                                          (complement doctor-asd?))
+                                              painless)
+        doctor-painless-and-both (filter (every-pred doctor-asd?
+                                                     doctor-adhd?)
+                                         painless)
+        doctor-painless-and-neurotypical (filter (every-pred (complement doctor-adhd?)
+                                                             (complement doctor-asd?))
+                                                 painless)
+        
+        screened-painless-and-asd-only (filter (every-pred screened-asd?
+                                                           (complement screened-adhd?))
+                                               painless)
+        screened-painless-and-adhd-only (filter (every-pred screened-adhd?
+                                                            (complement screened-asd?))
+                                                painless)
+        screened-painless-and-both (filter (every-pred screened-asd?
+                                                       screened-adhd?)
+                                           painless)
+        screened-painless-and-neurotypical (filter (every-pred (complement screened-adhd?)
+                                                               (complement screened-asd?))
+                                                   painless)]
     (println "Total entries: " total)
     (printf "Diagnosed with ADHD by a doctor: %d (%.0f%%)\n"
             (count doctor-adhd) (percent doctor-adhd))
@@ -231,6 +318,10 @@
             (count undiagnosed-adhd) (percent undiagnosed-adhd))
     (printf "Screened positive for ASD with no diagnosis (self or doctor): %d (%.0f%%)\n"
             (count undiagnosed-asd) (percent undiagnosed-asd))
+    (printf "Screened negative for ADHD with a diagnosis from a doctor: %d (%.0f%%)\n"
+            (count dr-adhd-screen-negative) (percent dr-adhd-screen-negative))
+    (printf "Screened negative for ASD with a diagnosis from a doctor: %d (%.0f%%)\n"
+            (count dr-asd-screen-negative) (percent dr-asd-screen-negative))
     (printf "Screened negative for ADHD with any diagnosis of ADHD (self or doctor): %d (%.0f%%)\n"
             (count any-dx-adhd-screen-negative) (percent any-dx-adhd-screen-negative))
     (printf "Screened negative for ASD with any diagnosis of ASD (self or doctor): %d (%.0f%%)\n"
@@ -263,6 +354,84 @@
             (count not-ctd-and-neurodiverse)
             (percent not-ctd-and-neurodiverse not-dx-ctd)
             (percent not-ctd-and-neurodiverse))    
+
+    (printf "\nCTD group (%d responses)\n" (count doctor-ctd))
+    (printf "Diagnosed CTD and diagnosed ADHD: %d (%.0f%% of CTD)\n"
+            (count doctor-ctd-and-adhd-only)
+            (percent doctor-ctd-and-adhd-only doctor-ctd))
+    (printf "Diagnosed CTD and diagnosed ASD: %d (%.0f%% of CTD)\n"
+            (count doctor-ctd-and-asd-only)
+            (percent doctor-ctd-and-asd-only doctor-ctd))
+    (printf "Diagnosed CTD and diagnosed both ASD and ADHD: %d (%.0f%% of CTD)\n"
+            (count doctor-ctd-and-both)
+            (percent doctor-ctd-and-both doctor-ctd))
+    (printf "Diagnosed CTD and no doctor diagnosis of neurodivergence: %d (%.0f%% of CTD)\n"
+            (count doctor-ctd-and-neurotypical)
+            (percent doctor-ctd-and-neurotypical doctor-ctd))
+    (printf "Diagnosed CTD and screened ADHD: %d (%.0f%% of CTD)\n"
+            (count screened-ctd-and-adhd-only)
+            (percent screened-ctd-and-adhd-only doctor-ctd))
+    (printf "Diagnosed CTD and screened ASD: %d (%.0f%% of CTD)\n"
+            (count screened-ctd-and-asd-only)
+            (percent screened-ctd-and-asd-only doctor-ctd))
+    (printf "Diagnosed CTD and screened both ASD and ADHD: %d (%.0f%% of CTD)\n"
+            (count screened-ctd-and-both)
+            (percent screened-ctd-and-both doctor-ctd))
+    (printf "Diagnosed CTD and no positive screen for neurodivergence: %d (%.0f%% of CTD)\n"
+            (count screened-ctd-and-neurotypical)
+            (percent screened-ctd-and-neurotypical doctor-ctd))
+
+    (printf "\nChronic pain group (%d responses)\n" (count doctor-chronic))
+    (printf "Diagnosed CHRONIC and diagnosed ADHD: %d (%.0f%% of CHRONIC)\n"
+            (count doctor-chronic-and-adhd-only)
+            (percent doctor-chronic-and-adhd-only doctor-chronic))
+    (printf "Diagnosed CHRONIC and diagnosed ASD: %d (%.0f%% of CHRONIC)\n"
+            (count doctor-chronic-and-asd-only)
+            (percent doctor-chronic-and-asd-only doctor-chronic))
+    (printf "Diagnosed CHRONIC and diagnosed both ASD and ADHD: %d (%.0f%% of CHRONIC)\n"
+            (count doctor-chronic-and-both)
+            (percent doctor-chronic-and-both doctor-chronic))
+    (printf "Diagnosed CHRONIC and no doctor diagnosis of neurodivergence: %d (%.0f%% of CHRONIC)\n"
+            (count doctor-chronic-and-neurotypical)
+            (percent doctor-chronic-and-neurotypical doctor-chronic))
+    (printf "Diagnosed CHRONIC and screened ADHD: %d (%.0f%% of CHRONIC)\n"
+            (count screened-chronic-and-adhd-only)
+            (percent screened-chronic-and-adhd-only doctor-chronic))
+    (printf "Diagnosed CHRONIC and screened ASD: %d (%.0f%% of CHRONIC)\n"
+            (count screened-chronic-and-asd-only)
+            (percent screened-chronic-and-asd-only doctor-chronic))
+    (printf "Diagnosed CHRONIC and screened both ASD and ADHD: %d (%.0f%% of CHRONIC)\n"
+            (count screened-chronic-and-both)
+            (percent screened-chronic-and-both doctor-chronic))
+    (printf "Diagnosed CHRONIC and no positive screen for neurodivergence: %d (%.0f%% of CHRONIC)\n"
+            (count screened-chronic-and-neurotypical)
+            (percent screened-chronic-and-neurotypical doctor-chronic))
+
+    (printf "\nPainless group (%d responses)\n" (count painless))
+    (printf "Diagnosed PAINLESS and diagnosed ADHD: %d (%.0f%% of PAINLESS)\n"
+            (count doctor-painless-and-adhd-only)
+            (percent doctor-painless-and-adhd-only painless))
+    (printf "Diagnosed PAINLESS and diagnosed ASD: %d (%.0f%% of PAINLESS)\n"
+            (count doctor-painless-and-asd-only)
+            (percent doctor-painless-and-asd-only painless))
+    (printf "Diagnosed PAINLESS and diagnosed both ASD and ADHD: %d (%.0f%% of PAINLESS)\n"
+            (count doctor-painless-and-both)
+            (percent doctor-painless-and-both painless))
+    (printf "Diagnosed PAINLESS and no doctor diagnosis of neurodivergence: %d (%.0f%% of PAINLESS)\n"
+            (count doctor-painless-and-neurotypical)
+            (percent doctor-painless-and-neurotypical painless))
+    (printf "Diagnosed PAINLESS and screened ADHD: %d (%.0f%% of PAINLESS)\n"
+            (count screened-painless-and-adhd-only)
+            (percent screened-painless-and-adhd-only painless))
+    (printf "Diagnosed PAINLESS and screened ASD: %d (%.0f%% of PAINLESS)\n"
+            (count screened-painless-and-asd-only)
+            (percent screened-painless-and-asd-only painless))
+    (printf "Diagnosed PAINLESS and screened both ASD and ADHD: %d (%.0f%% of PAINLESS)\n"
+            (count screened-painless-and-both)
+            (percent screened-painless-and-both painless))
+    (printf "Diagnosed PAINLESS and no positive screen for neurodivergence: %d (%.0f%% of PAINLESS)\n"
+            (count screened-painless-and-neurotypical)
+            (percent screened-painless-and-neurotypical painless))    
     ))
 
 
