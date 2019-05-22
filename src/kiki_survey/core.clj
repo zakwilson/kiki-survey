@@ -45,7 +45,17 @@
                     :asd-category
                     :asd-fidget
                     :asd-speech
-                    :asd-same])
+                    :asd-same
+                    :email
+                    :age
+                    :race
+                    :gender
+                    :healthcare
+                    :employment
+                    :education
+                    :impovrished
+                    :income
+                    :relationship])
 
 (defn read-file [f]
   (with-open [reader (io/reader f)]
@@ -53,6 +63,31 @@
          (map (partial interleave question-keys))
          (map (partial apply hash-map)))))
 
+(defn gender-match [entry word]
+  (and (:gender entry)
+       (s/includes? (:gender entry) word)))
+
+(defn cis-male? [entry]
+  (let [match (partial gender-match entry)]
+    (and (match "Man")
+         (not (match "Woman"))
+         (not (match "Intersex"))
+         (not (match "Transgender")))))
+
+(defn cis-female? [entry]
+  (let [match (partial gender-match entry)]
+    (and (match "Woman")
+         (not (match "Man")) ; note that includes? is case-sensitive
+         (not (match "Intersex"))
+         (not (match "Transgender")))))
+
+(defn nonbinary? [entry]
+  (let [match (partial gender-match entry)]
+    (or (match "Transgender")
+        (match "Intersex")
+        (match "Nonbinary")
+        (and (match "Man")
+             (match "Woman")))))
 
 (defn asd? [key survey-entry]
   (s/includes? (get survey-entry key)
@@ -150,6 +185,7 @@
 
 (defn screened-asd? [survey-entry]
   (>= (score-asd survey-entry) 15))
+
 
 (defn report [entries]
   (let [total (count entries)
